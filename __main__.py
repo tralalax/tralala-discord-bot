@@ -1,29 +1,65 @@
-import discord
-import asyncio
+import datetime
 import logging
-from discord.ext import commands
+from configparser import ConfigParser
 
-# create bot instance
-bot = commands.Bot(command_prefix=command_prefix, description=description, case_insensitive=True, intents=discord.Intents.all())
+import nextcord
+from nextcord.ext import commands
 
 # create log handler for discord.py
 log_handler = logging.FileHandler(filename='discordBot.log', encoding='utf-8', mode='w')
 
+# load config file
+config_object = ConfigParser()
+config_object.read("config.ini")
 
+botConfig = config_object['BOT_CONFIG']
 
-cogsCommand = ['cogs.test']
+# create bot instance
+bot = commands.Bot(command_prefix='$', case_insensitive=True, intents=nextcord.Intents.all())
 
-if __name__ == '__main__':
+# get curent date
+currentDate = datetime.datetime.now().strftime("%Y-%m-%d")
 
-    '''load cogs'''
+# file logging
+logging.basicConfig(filename='logs/bot-log-'+currentDate+'.log', format='%(asctime)s %(message)s', filemode='w', level=logging.INFO)
 
-    for extension in cogsCommand:
+# cogs file declaration
+initial_extensions = ['cogs.shell', 'cogs.commands']
+
+# load cogs extension
+def load_cogs():
+
+    logging.info("loading Cogs...")
+
+    for extension in initial_extensions:
+        logging.info("loading cog : "+extension)
+
         bot.load_extension(extension)
 
 
-@bot.event 
+@bot.event
 async def on_ready():
+    await bot.wait_until_ready()
+
     print('Logged in as')
     print(bot.user)
     print('------')
+
+    # await bot.tree.sync()
+
+    logging.info("bot ready")
+
+
+if __name__ == '__main__':
+
+    print("received start")
+
+    # load cogs
+    load_cogs()
+
+    logging.info("bot started")
+    # run Bot
+
+    bot.run(botConfig["token"])
+    logging.fatal("bot shutdown, ending loop")
 
