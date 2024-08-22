@@ -1,11 +1,22 @@
 import asyncio
 import logging
 import re
+from configparser import ConfigParser
 import ipcalc
 import nextcord
 import requests
 from nextcord import SlashOption
 from nextcord.ext import commands
+
+
+# load config file
+config_object = ConfigParser()
+config_object.read("config.ini")
+
+botConfig = config_object['BOT_CONFIG']
+
+welcome_channel_id = int(botConfig["welcome_chanel"])
+
 
 
 class generalCommand(commands.Cog):
@@ -15,7 +26,7 @@ class generalCommand(commands.Cog):
         self.bot.remove_command("help")
 
 
-    @nextcord.slash_command(description="show help message", guild_ids=[749252177616175157])
+    @nextcord.slash_command(description="show help message")
     async def help(self, interaction: nextcord.Interaction):
         embed = nextcord.Embed(title="Liste des commandes", color=0x69edf8)
         embed.add_field(name="/remindme",
@@ -32,7 +43,7 @@ class generalCommand(commands.Cog):
         await interaction.response.send_message(embed=embed)
 
 
-    @nextcord.slash_command(description="remind someone, to do something, in sometime", guild_ids=[749252177616175157])
+    @nextcord.slash_command(description="remind someone, to do something, in sometime")
     async def remindme(self, interaction: nextcord.Interaction,
                     todo: str = SlashOption(name="the-thing", description="the thing to do", required=True),
                     time: int = SlashOption(name="in-minutes", description="the reminder will be send in X minutes", required=True, max_value=240),
@@ -54,7 +65,7 @@ class generalCommand(commands.Cog):
         await user.send(embed=ReminderEmbed)
 
 
-    @nextcord.slash_command(description="get a random anime pic", guild_ids=[749252177616175157])
+    @nextcord.slash_command(description="get a random anime pic")
     async def anime(self, interaction: nextcord.Interaction):
 
         response = requests.get("https://api.nekosapi.com/v3/images/random", params={"limit": 1, "is_nsfw": False})
@@ -65,7 +76,7 @@ class generalCommand(commands.Cog):
             await interaction.response.send_message("request ended in a non 200 exit code : "+str(response.status_code))
 
 
-    @nextcord.slash_command(description="get a random cat pic (specialement fait pour kilou)", guild_ids=[749252177616175157])
+    @nextcord.slash_command(description="get a random cat pic (specialement fait pour kilou)")
     async def cat(self, interaction: nextcord.Interaction):
 
         # await interaction.response.send_message(f"https://cataas.com/cat?random={random.randint(1, 1000)}")
@@ -77,7 +88,7 @@ class generalCommand(commands.Cog):
             await interaction.response.send_message("request ended in a non 200 exit code : "+str(response.status_code))
 
 
-    @nextcord.slash_command(description="calcul tout ce qu'il faut calculé à propos d'une IP", guild_ids=[749252177616175157])
+    @nextcord.slash_command(description="calcul tout ce qu'il faut calculé à propos d'une IP")
     async def ip(self, interaction: nextcord.Interaction,
                  ip: str = SlashOption(name="ip", description="ip address", required=True),
                  mask: str = SlashOption(name="mask", description="ip mask", required=True)):
@@ -120,7 +131,7 @@ network size :                {network.size()}
         await interaction.response.send_message(embed=EmbedRes)
 
 
-    @nextcord.slash_command(description="convertis en hex en bin et en dec", guild_ids=[749252177616175157])
+    @nextcord.slash_command(description="convertis en hex en bin et en dec")
     async def convert(self, interaction: nextcord.Interaction,
                       value: str = SlashOption(name="value", description="value", required=True)):
 
@@ -139,6 +150,7 @@ network size :                {network.size()}
             else:
                 base = 10
                 num = int(value, base)
+
         except ValueError as val_err:
             await interaction.response.send_message(f"incorrect input value : {val_err}")
 
@@ -156,9 +168,37 @@ network size :                {network.size()}
         await interaction.response.send_message(embed=EmbedRes)
 
 
+
+
+
+
     @commands.Cog.listener()
     async def on_application_command_error(self, interaction: nextcord.Interaction, error):
         logging.error(f"Error in cog.ommands : {error}")
+
+
+    @commands.Cog.listener()
+    async def on_member_join(self, member: nextcord.Member):
+        channel = self.bot.get_channel(welcome_channel_id)
+
+        if channel is not None:
+            await channel.send(f"et on dit bienvenue à {member.mention}")
+
+        else:
+            logging.error(f"channel with ID {welcome_channel_id} not found")
+            logging.info(f"new member {member.name} joined")
+
+
+    @commands.Cog.listener()
+    async def on_member_remove(self, member: nextcord.Member):
+        channel = self.bot.get_channel(welcome_channel_id)
+
+        if channel is not None:
+            await channel.send(f"et on dit aurevoir à {member.mention}")
+
+        else:
+            logging.error(f"channel with ID {welcome_channel_id} not found")
+            logging.info(f"member {member.name} leaved the guild")
 
 
 
