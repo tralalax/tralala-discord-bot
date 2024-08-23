@@ -69,6 +69,7 @@ class generalCommand(commands.Cog):
     async def anime(self, interaction: nextcord.Interaction):
 
         response = requests.get("https://api.nekosapi.com/v3/images/random", params={"limit": 1, "is_nsfw": False})
+        # "is_nsfw": False doesn't work
 
         if response.status_code == 200:
             await interaction.response.send_message(response.json()['items'][0]['image_url'])
@@ -95,6 +96,7 @@ class generalCommand(commands.Cog):
 
         if not re.match(r"^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}$", ip):
             await interaction.response.send_message("invalid IP")
+            return
 
         # mask is a CIDR, else convert it to CIDR
         if re.match(r"^(0|[1-9][0-9]*)$", mask):
@@ -107,6 +109,7 @@ class generalCommand(commands.Cog):
 
         else:
             await interaction.response.send_message("invalid mask")
+            return
 
         network = ipcalc.Network(f"{ip}/{mask_cidr}")
 
@@ -153,6 +156,7 @@ network size :                {network.size()}
 
         except ValueError as val_err:
             await interaction.response.send_message(f"incorrect input value : {val_err}")
+            return
 
         # Convert to the other formats
         decimal_value = num
@@ -174,7 +178,7 @@ network size :                {network.size()}
 
     @commands.Cog.listener()
     async def on_application_command_error(self, interaction: nextcord.Interaction, error):
-        logging.error(f"Error in cog.ommands : {error}")
+        logging.error(f"Error in cog.commands : {error}")
 
 
     @commands.Cog.listener()
@@ -187,6 +191,7 @@ network size :                {network.size()}
         else:
             logging.error(f"channel with ID {welcome_channel_id} not found")
             logging.info(f"new member {member.name} joined")
+            return
 
 
     @commands.Cog.listener()
@@ -199,6 +204,7 @@ network size :                {network.size()}
         else:
             logging.error(f"channel with ID {welcome_channel_id} not found")
             logging.info(f"member {member.name} leaved the guild")
+            return
 
 
 
