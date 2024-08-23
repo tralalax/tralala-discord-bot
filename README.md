@@ -4,6 +4,7 @@ use Nextcord, Cogs, slash command
 
 # Todo :
 - music player
+- /chmod calculator
 
 # Feature :
 - /remindme <msg> <time delay> <user> : Sends a reminder (custom message) to someone or yourself after X minutes

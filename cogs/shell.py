@@ -1,4 +1,6 @@
 import logging
+import os
+import pty
 import subprocess
 from configparser import ConfigParser
 
@@ -35,10 +37,10 @@ class ShellCog(commands.Cog):
         # create embed
         resultEmbed = nextcord.Embed(title="Server answer :", color=nextcord.Color.blue())
 
-        # await interaction.response.defer()
-
         try:
-            run_res = subprocess.run(args_list, shell=True, capture_output=True).stdout.decode(encoding, errors="replace") # , text=True
+            # run_res = subprocess.run(args_list, shell=True, capture_output=True).stdout.decode(encoding, errors="replace") # , text=True
+            run_res = subprocess.run(args_list, stdout=subprocess.PIPE).stdout.decode(encoding) # encoding
+
         except Exception as err:
             resultEmbed.add_field(name="Error executing comand : ", value=f"```{err}```", inline=False)
             await interaction.response.send_message(embed=resultEmbed)
@@ -69,9 +71,6 @@ class ShellCog(commands.Cog):
     @commands.Cog.listener()
     async def on_application_command_error(self, interaction: nextcord.Interaction, error):
         logging.error(f"Error in cog.shell : {error}")
-
-
-
 
 
 
